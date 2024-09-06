@@ -1,6 +1,5 @@
 package com.example.artspace
 
-import android.R.id
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,31 +8,19 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -45,7 +32,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.artspace.ui.theme.ArtSpaceTheme
-import com.example.tiptime.ui.theme.md_theme_light_inverseSurface
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,15 +52,15 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ArtSpaceApp() {
-    var artWorkSequence by remember { mutableStateOf(ArtWorkSequence.FIRST) }
+    var artWorkSequence by rememberSaveable { mutableStateOf(ArtWorkSequence.FIRST) }
 
     val artWork = when (artWorkSequence) {
         ArtWorkSequence.FIRST -> ArtWork(
-                artistResource = R.string.vincent_van_gogh,
-                titleResource = R.string.starry_night,
-                paintResource = R.drawable.starry_night,
-                yearOfCreationResource = R.string.starry_night_year_of_creation
-            )
+            artistResource = R.string.vincent_van_gogh,
+            titleResource = R.string.starry_night,
+            paintResource = R.drawable.starry_night,
+            yearOfCreationResource = R.string.starry_night_year_of_creation
+        )
 
         ArtWorkSequence.SECOND -> ArtWork(
             artistResource = R.string.claude_monet,
@@ -91,27 +77,64 @@ fun ArtSpaceApp() {
         )
     }
 
+    val isTablet = LocalConfiguration.current.screenWidthDp > 600
+    var firstBoxWidth by remember { mutableStateOf(0.dp) }
+
     Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
-            .systemBarsPadding(),
+            .systemBarsPadding()
+            .verticalScroll(rememberScrollState())
     ) {
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .wrapContentSize()
-        ) {
-            ArtWorkWall(
-                imageResource = artWork.paintResource,
+        if (isTablet) {
+            Column (
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .weight(1f)
+                    .wrapContentSize()
+                    .padding(16.dp)
+
+            ) {
+                ArtWorkWall(
+                    imageResource = artWork.paintResource,
+                    modifier = Modifier.weight(1f)
+                        .onGloballyPositioned { coordinates ->
+                            firstBoxWidth = coordinates.size.width.dp
+                        }
+                )
+                Spacer(modifier = Modifier.width(24.dp))
+
+                ArtWorkTitle(
+                    titleResource = artWork.titleResource,
+                    artistResource = artWork.artistResource,
+                    yearOfCreationResource = artWork.yearOfCreationResource,
+                    modifier = Modifier.width(600.dp)
+
+                )
+            }
+        } else {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .wrapContentSize()
+                    .padding(16.dp)
+                    .align(Alignment.CenterHorizontally)
+            ) {
+                ArtWorkWall(
+                    imageResource = artWork.paintResource,
+                )
+            }
+            ArtWorkTitle(
+                titleResource = artWork.titleResource,
+                artistResource = artWork.artistResource,
+                yearOfCreationResource = artWork.yearOfCreationResource,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
             )
         }
-
-        ArtWorkTitle(
-            titleResource = artWork.titleResource,
-            artistResource = artWork.artistResource,
-            yearOfCreationResource = artWork.yearOfCreationResource,
-        )
 
         Spacer(Modifier.height(24.dp))
 
@@ -143,12 +166,12 @@ fun ArtWorkWall(
 ) {
     Surface(
         shadowElevation = 10.dp,
-        modifier = modifier.padding(16.dp)
+        modifier = modifier
     ) {
         Image(
             painter = painterResource(id = imageResource),
             contentDescription = null,
-            modifier = modifier.padding(24.dp)
+            modifier = Modifier.padding(24.dp)
         )
     }
 }
@@ -160,16 +183,16 @@ fun ArtWorkTitle(
     @StringRes yearOfCreationResource: Int,
     modifier: Modifier = Modifier
 ) {
+    val isTablet = LocalConfiguration.current.screenWidthDp > 600
+
     Column(
         modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
             .background(Color.LightGray)
     ) {
         Text(
             text = stringResource(titleResource),
-            lineHeight = 40.sp,
-            fontSize = 36.sp,
+            lineHeight = if (isTablet) 50.sp else 40.sp,
+            fontSize = if (isTablet) 48.sp else 36.sp,
             fontWeight = FontWeight.Thin,
             modifier = modifier.padding(start = 8.dp, top = 8.dp)
         )
@@ -183,7 +206,7 @@ fun ArtWorkTitle(
                 append(" ")
                 append(stringResource(id = yearOfCreationResource))
             },
-            fontSize = 18.sp,
+            fontSize = if (isTablet) 24.sp else 18.sp,
             fontWeight = FontWeight.Thin,
             modifier = modifier.padding(start = 10.dp, bottom = 8.dp)
         )
@@ -209,6 +232,7 @@ fun DisplayController(
         ) {
             Text(
                 text = stringResource(R.string.previous),
+                color = Color.White
             )
         }
 
@@ -217,12 +241,15 @@ fun DisplayController(
             colors = ButtonDefaults.buttonColors(Color.Black),
             modifier = Modifier.width(dimensionResource(id = R.dimen.button_width))
         ) {
-            Text(text = stringResource(R.string.next))
+            Text(
+                text = stringResource(R.string.next),
+                color = Color.White
+            )
         }
     }
 }
 
-@Preview(showBackground = true)
+@Preview(heightDp = 460, widthDp = 800)
 @Composable
 fun ArtSpaceAppPreview() {
     ArtSpaceTheme {
