@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">ArtSpace</string>
+    <string name="vincent_van_gogh">Vincent Van Gogh</string>
+    <string name="starry_night">Starry Night</string>
+    <string name="starry_night_year_of_creation">(1889)</string>
+    <string name="claude_monet">Claude Monet</string>
+    <string name="woman_with_a_parasol">Woman With a Parasol</string>
+    <string name="woman_with_a_parasol_year_of_creation">(1889)</string>
+    <string name="lee_jungseop">Lee Jungseop</string>
+    <string name="white_ox">White Ox</string>
+    <string name="white_ox_year_of_creation">(1954)</string>
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
+</resources>
