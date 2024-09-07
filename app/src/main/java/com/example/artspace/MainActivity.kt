@@ -78,7 +78,7 @@ fun ArtSpaceApp() {
     }
 
     val isTablet = LocalConfiguration.current.screenWidthDp > 600
-    var firstBoxWidth by remember { mutableStateOf(0.dp) }
+    var tabletWidthFraction = LocalConfiguration.current.screenWidthDp * 0.5
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -86,7 +86,6 @@ fun ArtSpaceApp() {
             .fillMaxSize()
             .statusBarsPadding()
             .systemBarsPadding()
-            .verticalScroll(rememberScrollState())
     ) {
         if (isTablet) {
             Column (
@@ -95,23 +94,36 @@ fun ArtSpaceApp() {
                     .weight(1f)
                     .wrapContentSize()
                     .padding(16.dp)
+                    .verticalScroll(rememberScrollState())
 
             ) {
                 ArtWorkWall(
                     imageResource = artWork.paintResource,
-                    modifier = Modifier.weight(1f)
-                        .onGloballyPositioned { coordinates ->
-                            firstBoxWidth = coordinates.size.width.dp
-                        }
+                    modifier = Modifier.width(tabletWidthFraction.dp).padding(bottom = 48.dp)
                 )
-                Spacer(modifier = Modifier.width(24.dp))
 
                 ArtWorkTitle(
                     titleResource = artWork.titleResource,
                     artistResource = artWork.artistResource,
                     yearOfCreationResource = artWork.yearOfCreationResource,
-                    modifier = Modifier.width(600.dp)
+                    modifier = Modifier.width(tabletWidthFraction.dp)
+                )
 
+                DisplayController(
+                    onPreviousClick = {
+                        when (artWorkSequence) {
+                            ArtWorkSequence.FIRST -> {}
+                            ArtWorkSequence.SECOND -> artWorkSequence = ArtWorkSequence.FIRST
+                            ArtWorkSequence.THIRD -> artWorkSequence = ArtWorkSequence.SECOND
+                        }
+                    },
+                    onNextClick = {
+                        when (artWorkSequence) {
+                            ArtWorkSequence.FIRST -> artWorkSequence = ArtWorkSequence.SECOND
+                            ArtWorkSequence.SECOND -> artWorkSequence = ArtWorkSequence.THIRD
+                            ArtWorkSequence.THIRD -> {}
+                        }
+                    }
                 )
             }
         } else {
@@ -134,28 +146,30 @@ fun ArtSpaceApp() {
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp)
             )
+
+            Spacer(Modifier.height(24.dp))
+
+            DisplayController(
+                onPreviousClick = {
+                    when (artWorkSequence) {
+                        ArtWorkSequence.FIRST -> {}
+                        ArtWorkSequence.SECOND -> artWorkSequence = ArtWorkSequence.FIRST
+                        ArtWorkSequence.THIRD -> artWorkSequence = ArtWorkSequence.SECOND
+                    }
+                },
+                onNextClick = {
+                    when (artWorkSequence) {
+                        ArtWorkSequence.FIRST -> artWorkSequence = ArtWorkSequence.SECOND
+                        ArtWorkSequence.SECOND -> artWorkSequence = ArtWorkSequence.THIRD
+                        ArtWorkSequence.THIRD -> {}
+                    }
+                }
+            )
+
+            Spacer(Modifier.height(24.dp))
         }
 
-        Spacer(Modifier.height(24.dp))
 
-        DisplayController(
-            onPreviousClick = {
-                when (artWorkSequence) {
-                    ArtWorkSequence.FIRST -> {}
-                    ArtWorkSequence.SECOND -> artWorkSequence = ArtWorkSequence.FIRST
-                    ArtWorkSequence.THIRD -> artWorkSequence = ArtWorkSequence.SECOND
-                }
-            },
-            onNextClick = {
-                when (artWorkSequence) {
-                    ArtWorkSequence.FIRST -> artWorkSequence = ArtWorkSequence.SECOND
-                    ArtWorkSequence.SECOND -> artWorkSequence = ArtWorkSequence.THIRD
-                    ArtWorkSequence.THIRD -> {}
-                }
-            }
-        )
-
-        Spacer(Modifier.height(24.dp))
     }
 }
 
